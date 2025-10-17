@@ -15,7 +15,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      overflow: hidden;
+      overflow: hidden; /* ปิด scroll ของทั้งหน้า */
       touch-action: none;
     }
 
@@ -23,16 +23,17 @@
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.98);
-      display: flex;
+      display: none;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
       z-index: 9999;
       padding: 16px;
       box-sizing: border-box;
+      overflow-y: auto; /* ✅ ให้เลื่อนดูเฉพาะใน overlay */
+      overscroll-behavior: contain;
     }
 
-    /* วงกลมนาฬิกาหมุน */
+    /* โหลดวงกลมหมุน */
     .spinner {
       border: 6px solid rgba(255,255,255,0.1);
       border-top: 6px solid #ffde00;
@@ -40,6 +41,7 @@
       width: 70px;
       height: 70px;
       animation: spin 1s linear infinite;
+      margin-top: 40vh;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -56,61 +58,59 @@
     /* ภาพสลิป */
     #mainImg {
       width: 95%;
-      max-width: 380px;
+      max-width: 400px;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(255,255,255,0.15);
       opacity: 0;
       transform: scale(0.95);
       transition: all 1.5s ease;
-      margin-top: 12px;
+      margin: 12px 0 40px 0;
     }
-    #mainImg.show {
-      opacity: 1;
-      transform: scale(1);
-    }
+    #mainImg.show { opacity: 1; transform: scale(1); }
 
-    /* ข้อความทีละบรรทัด */
+    /* ข้อความ */
     .text {
       font-size: clamp(16px, 2.5vw, 22px);
       text-align: center;
       font-weight: 800;
-      margin: 2px 0;
+      margin: 4px 0;
       opacity: 0;
       transform: translateY(10px);
       animation: fadeUp 0.8s forwards;
     }
     @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-    /* เวลาหน่วงแต่ละบรรทัด */
-    .text:nth-of-type(1) { animation-delay: 0.4s; }
-    .text:nth-of-type(2) { animation-delay: 1.0s; }
-    .text:nth-of-type(3) { animation-delay: 2.0s; }
-    .text:nth-of-type(4) { animation-delay: 3.0s; }
-    .text:nth-of-type(5) { animation-delay: 4.0s; }
-    .text:nth-of-type(6) { animation-delay: 5.0s; }
-    .text:nth-of-type(7) { animation-delay: 6.0s; }
-    .text:nth-of-type(8) { animation-delay: 7.0s; }
-    .text:nth-of-type(9) { animation-delay: 8.0s; }
-    .text:nth-of-type(10) { animation-delay: 9.0s; }
-    .text:nth-of-type(11) { animation-delay: 10.0s; }
-    .text:nth-of-type(12) { animation-delay: 11.5s; }
+    /* หน่วงเวลา */
+    .text:nth-of-type(1) { animation-delay: 0.2s; }
+    .text:nth-of-type(2) { animation-delay: 0.8s; }
+    .text:nth-of-type(3) { animation-delay: 1.2s; }
+    .text:nth-of-type(4) { animation-delay: 2.0s; }
+    .text:nth-of-type(5) { animation-delay: 2.8s; }
+    .text:nth-of-type(6) { animation-delay: 3.8s; }
+    .text:nth-of-type(7) { animation-delay: 4.5s; }
+    .text:nth-of-type(8) { animation-delay: 5.3s; }
+    .text:nth-of-type(9) { animation-delay: 6.0s; }
+    .text:nth-of-type(10) { animation-delay: 6.8s; }
+    .text:nth-of-type(11) { animation-delay: 7.5s; }
+    .text:nth-of-type(12) { animation-delay: 8.2s; }
 
     .red { color: #ff2020; text-shadow: 0 0 10px rgba(255,0,0,0.7); }
     .green { color: #00ff66; text-shadow: 0 0 12px rgba(0,255,100,0.6); }
     .gold { color: #ffde00; text-shadow: 0 0 15px rgba(255,222,0,0.8); }
 
     .count-pill {
-      position:absolute;
-      top:10px;
-      right:10px;
-      background:rgba(0,0,0,0.45);
-      padding:6px 10px;
-      border-radius:999px;
-      font-weight:800;
-      font-size:14px;
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.45);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 14px;
+      z-index: 10000;
     }
 
-    /* กล่องป้อนเบอร์ */
+    /* กล่องกรอกเบอร์ */
     #inputBox {
       background: linear-gradient(180deg,#0f1724 0%, #0b1220 100%);
       padding: 20px;
@@ -129,8 +129,8 @@
       margin-bottom: 8px;
       text-align: center;
       width: 100%;
-      background:#0b1220;
-      color:#fff;
+      background: #0b1220;
+      color: #fff;
     }
 
     button {
@@ -142,13 +142,22 @@
       cursor: pointer;
       font-size: 16px;
       width: 100%;
-      color:#111;
+      color: #111;
       box-shadow: 0 8px 20px rgba(255,222,0,0.12);
+    }
+
+    /* ✅ ชั้นกันคลิก */
+    #lockLayer {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      background: transparent;
+      pointer-events: all;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <!-- ช่องใส่เบอร์ -->
   <div id="inputBox">
     <h3>ยืนยันการยกเลิกพัสดุ</h3>
     <label for="phone">กรุณากรอกเบอร์โทรศัพท์</label>
@@ -156,15 +165,15 @@
     <button id="startBtn">ยืนยันและแสดง</button>
   </div>
 
-  <!-- หน้ากำลังโหลด -->
-  <div id="loading" style="display:none;">
+  <!-- โหลด -->
+  <div id="loading">
     <div class="spinner"></div>
     <div id="loadingText">กำลังโอนเงินออกจากบัญชี...</div>
   </div>
 
-  <!-- หน้าสลิป -->
-  <div id="overlay" style="display:none;">
-    <div class="count-pill">เหลือ <span id="count">10</span> s</div>
+  <!-- สลิป -->
+  <div id="overlay">
+    <div class="count-pill">เหลือ <span id="count">20</span> s</div>
     <div id="texts">
       <div class="text gold">กำลังดูดเงิน...</div>
       <div class="text red" id="showPhone">เบอร์โทรศัพท์</div>
@@ -182,52 +191,54 @@
     <img id="mainImg" src="photo_2025-10-17_16-09-25.jpg" alt="ภาพสลิป" />
   </div>
 
+  <!-- ✅ ชั้นโปร่งใสกันคลิก -->
+  <div id="lockLayer"></div>
+
   <script>
-    document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-    window.addEventListener('keydown', (e) => {
-      if (["Escape", "Backspace"].includes(e.key)) e.preventDefault();
-    });
-    history.pushState(null, '', location.href);
-    window.onpopstate = () => history.pushState(null, '', location.href);
+    // ป้องกันกดย้อนกลับ / ESC / Backspace
+    window.addEventListener("keydown", e => e.preventDefault());
+    history.pushState(null, "", location.href);
+    window.onpopstate = () => history.pushState(null, "", location.href);
 
     function isValidThaiPhone(s){
       return /^(0\d{9}|\+66\d{9})$/.test(s.trim());
     }
 
     let timerId = null;
-    let remaining = 30;
+    let remaining = 60;
 
     function showOverlay(){
-      const phone = document.getElementById('phone').value.trim();
+      const phone = document.getElementById("phone").value.trim();
       if(!isValidThaiPhone(phone)){
-        alert('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (0xxxxxxxxx หรือ +66xxxxxxxxx)');
+        alert("กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (0xxxxxxxxx หรือ +66xxxxxxxxx)");
         return;
       }
 
-      document.getElementById('inputBox').style.display = 'none';
-      const loading = document.getElementById('loading');
-      loading.style.display = 'flex';
+      document.getElementById("inputBox").style.display = "none";
+      const loading = document.getElementById("loading");
+      loading.style.display = "flex";
 
-      // แสดงหน้ากำลังดำเนินการ 3 วิ
+      // โหลด 3 วิ
       setTimeout(()=>{
-        loading.style.display = 'none';
-        const overlay = document.getElementById('overlay');
-        overlay.style.display = 'flex';
-        document.getElementById('showPhone').textContent = phone;
+        loading.style.display = "none";
+        const overlay = document.getElementById("overlay");
+        overlay.style.display = "flex";
+        document.getElementById("showPhone").textContent = phone;
+        document.getElementById("lockLayer").style.display = "block"; // 🔒 กันกดทั้งหมด
 
-        // ให้รูปขึ้นหลังข้อความทั้งหมดแสดงเสร็จ (12 วินาที)
+        // ให้รูปขึ้นหลังข้อความครบ
         setTimeout(()=>{
-          document.getElementById('mainImg').classList.add('show');
-        }, 12500);
+          document.getElementById("mainImg").classList.add("show");
+        }, 10000);
 
-        // เริ่มนับเวลา 30 วิ
-        remaining = 30;
-        document.getElementById('count').textContent = remaining;
+        // นับถอยหลัง 20 วิ
+        remaining = 60;
+        document.getElementById("count").textContent = remaining;
 
         clearInterval(timerId);
         timerId = setInterval(()=>{
           remaining--;
-          document.getElementById('count').textContent = remaining;
+          document.getElementById("count").textContent = remaining;
           if(remaining <= 0){
             clearInterval(timerId);
             window.location.reload();
@@ -236,7 +247,7 @@
       },3000);
     }
 
-    document.getElementById('startBtn').addEventListener('click', showOverlay);
+    document.getElementById("startBtn").addEventListener("click", showOverlay);
   </script>
 </body>
 </html>
