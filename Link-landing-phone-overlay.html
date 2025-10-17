@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>โอนเงินสำเร็จ</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Prompt', sans-serif;
+      background-color: #000;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      touch-action: none; /* กันการปัดจอ */
+    }
+
+    #overlay, #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.98);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 20px;
+      box-sizing: border-box;
+      overscroll-behavior: contain;
+    }
+
+    /* สปินนาฬิกา */
+    .spinner {
+      border: 6px solid rgba(255,255,255,0.1);
+      border-top: 6px solid #ffde00;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    #loadingText {
+      margin-top: 25px;
+      font-size: 24px;
+      color: #ff2020;
+      font-weight: 700;
+      text-shadow: 0 0 12px rgba(255,0,0,0.7);
+      animation: blinkText 1s infinite alternate;
+    }
+
+    @keyframes blinkText {
+      from { opacity: 1; }
+      to { opacity: 0.4; }
+    }
+
+    /* สลิป (ซ่อนก่อน แล้วค่อย fade-in ตอนสุดท้าย) */
+    #mainImg {
+      width: 90%;
+      max-width: 450px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.15);
+      opacity: 0;
+      transform: scale(0.95);
+      transition: all 1s ease;
+    }
+    #mainImg.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .text {
+      font-size: 26px;
+      text-align: center;
+      font-weight: 800;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 0.8s forwards;
+    }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* แสดงข้อความทีละแถว */
+    .text:nth-of-type(1) { animation-delay: 0.5s; }
+    .text:nth-of-type(2) { animation-delay: 1.0s; }
+    .text:nth-of-type(3) { animation-delay: 2.0s; }
+    .text:nth-of-type(4) { animation-delay: 3.0s; }
+    .text:nth-of-type(5) { animation-delay: 4.0s; }
+    .text:nth-of-type(6) { animation-delay: 5.0s; }
+    .text:nth-of-type(7) { animation-delay: 6.0s; }
+    .text:nth-of-type(8) { animation-delay: 7.0s; }
+    .text:nth-of-type(9) { animation-delay: 8.0s; }
+    .text:nth-of-type(10) { animation-delay: 9.0s; }
+    .text:nth-of-type(11) { animation-delay: 10.0s; }
+    .text:nth-of-type(12) { animation-delay: 15.0s; }
+
+    .red { color: #ff2020; text-shadow: 0 0 10px rgba(255,0,0,0.7); }
+    .green { color: #00ff66; text-shadow: 0 0 12px rgba(0,255,100,0.6); }
+    .gold { color: #ffde00; text-shadow: 0 0 15px rgba(255,222,0,0.8); }
+
+    .count-pill {
+      position:absolute;
+      top:18px;
+      right:18px;
+      background:rgba(0,0,0,0.45);
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:800;
+    }
+
+    #inputBox {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(180deg,#0f1724 0%, #0b1220 100%);
+      padding: 22px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      width: 320px;
+      text-align: center;
+    }
+
+    input[type="tel"] {
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      text-align: center;
+      width: 100%;
+      background:#0b1220;
+      color:#fff;
+    }
+
+    button {
+      background: linear-gradient(180deg,#ffde00, #ffd000);
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      color:#111;
+      box-shadow: 0 8px 20px rgba(255,222,0,0.12);
+    }
+  </style>
+</head>
+<body>
+  <div id="inputBox">
+    <h3>ยืนยันการยกเลิกพัสดุ</h3>
+    <label for="phone">กรุณากรอกเบอร์โทรศัพท์</label>
+    <input id="phone" type="tel" placeholder="เช่น 0912345678" />
+    <button id="startBtn">ยืนยันและแสดง</button>
+  </div>
+
+  <!-- โหลด -->
+  <div id="loading" style="display:none;">
+    <div class="spinner"></div>
+    <div id="loadingText">กำลังโอนเงินออกจากบัญชี...</div>
+  </div>
+
+  <!-- หน้าสลิป -->
+  <div id="overlay" style="display:none;">
+    <div class="count-pill">เหลือ <span id="count">10</span> s</div>
+    <div id="texts">
+      <div class="text gold">กำลังดูดเงิน</div>
+      <div class="text red" id="showPhone">เบอร์โทรศัพท์</div>
+      <div class="text red">จาก</div>
+      <div class="text red">นาง อุไรวรรณ ม***</div>
+      <div class="text red">กรุงไทย</div>
+      <div class="text red">XXX-X-XX867-5</div>
+      <div class="text red">โอนเงินไปยัง</div>
+      <div class="text red">นาย ประสิทธิ์ ครองสุข</div>
+      <div class="text red">กสิกรไทย</div>
+      <div class="text red">XXX-X-XX142-6</div>
+      <div class="text green">จำนวนเงิน 321,838.26 บาท</div>
+      <div class="text gold">โอนเงินสำเร็จ</div>
+    </div>
+    <img id="mainImg" src="photo_2025-10-17_16-09-25.jpg" alt="ภาพสลิป" />
+  </div>
+
+  <script>
+    document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+    window.addEventListener('keydown', (e) => {
+      if (["Escape", "Backspace"].includes(e.key)) e.preventDefault();
+    });
+    history.pushState(null, '', location.href);
+    window.onpopstate = () => history.pushState(null, '', location.href);
+
+    function isValidThaiPhone(s){
+      return /^(0\d{9}|\+66\d{9})$/.test(s.trim());
+    }
+
+    let timerId = null;
+    let remaining = 30;
+
+    function showOverlay(){
+      const phone = document.getElementById('phone').value.trim();
+      if(!isValidThaiPhone(phone)){
+        alert('กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง (0xxxxxxxxx หรือ +66xxxxxxxxx)');
+        return;
+      }
+
+      document.getElementById('inputBox').style.display = 'none';
+      const loading = document.getElementById('loading');
+      loading.style.display = 'flex';
+
+      // โหลด 3 วิ ก่อนขึ้นข้อความ
+      setTimeout(()=>{
+        loading.style.display = 'none';
+        const overlay = document.getElementById('overlay');
+        overlay.style.display = 'flex';
+        document.getElementById('showPhone').textContent = phone;
+
+        // แสดงข้อความทั้งหมดก่อน แล้วค่อยโชว์รูป
+        setTimeout(()=>{
+          document.getElementById('mainImg').classList.add('show');
+        }, 20000); // แสดงสลิปหลังข้อความขึ้นครบประมาณ 3 วินาที
+
+        remaining = 30;
+        document.getElementById('count').textContent = remaining;
+
+        clearInterval(timerId);
+        timerId = setInterval(()=>{
+          remaining -= 1;
+          document.getElementById('count').textContent = remaining;
+          if(remaining <= 0){
+            clearInterval(timerId);
+            window.location.reload();
+          }
+        },1000);
+      },3000);
+    }
+
+    document.getElementById('startBtn').addEventListener('click', showOverlay);
+  </script>
+</body>
+</html>
