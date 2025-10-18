@@ -26,6 +26,7 @@
       overscroll-behavior: none;
     }
 
+    /* กล่องกรอกเบอร์ */
     #inputBox {
       background: linear-gradient(180deg,#0f1724 0%, #0b1220 100%);
       padding: 20px;
@@ -110,11 +111,12 @@
       box-sizing: border-box;
     }
 
+    /* ปรับขนาดตัวหนังสือเล็กลง */
     .text {
-      font-size: clamp(16px, 2.5vw, 22px);
+      font-size: clamp(14px, 2vw, 18px);
       text-align: center;
-      font-weight: 800;
-      margin: 4px 0;
+      font-weight: 700;
+      margin: 3px 0;
       opacity: 0;
       transform: translateY(10px);
       animation: fadeUp 0.8s forwards;
@@ -133,20 +135,21 @@
     .text:nth-of-type(10){ animation-delay: 2.0s; }
     .text:nth-of-type(11){ animation-delay: 2.2s; }
     .text:nth-of-type(12){ animation-delay: 5.0s; }
+    .red { color:#ff3b3b; text-shadow:0 0 6px rgba(255,0,0,0.6);}
+    .green { color:#00ff6a; text-shadow:0 0 8px rgba(0,255,100,0.5);}
+    .gold { color:#ffde00; text-shadow:0 0 10px rgba(255,222,0,0.7);}
 
-    .red { color:#ff2020;text-shadow:0 0 10px rgba(255,0,0,0.7);}
-    .green { color:#00ff66;text-shadow:0 0 12px rgba(0,255,100,0.6);}
-    .gold { color:#ffde00;text-shadow:0 0 15px rgba(255,222,0,0.8);}
-
+    /* ปรับขนาดภาพสลิปให้พอดีจอ */
     #mainImg {
-      width: 70vw;
-      max-width: 320px;
-      border-radius: 10px;
-      box-shadow: 0 0 20px rgba(255,255,255,0.15);
+      width: 80vw;
+      max-width: 340px;
+      height: auto;
+      border-radius: 12px;
+      margin: 12px 0 30px;
+      box-shadow: 0 0 15px rgba(255,255,255,0.15);
       opacity: 0;
-      transform: scale(0.95);
-      transition: all 1.5s ease;
-      margin: 20px 0 30px;
+      transform: scale(0.96);
+      transition: all 1.2s ease;
     }
     #mainImg.show { opacity: 1; transform: scale(1); }
 
@@ -157,8 +160,8 @@
       background: rgba(0,0,0,0.45);
       padding: 6px 10px;
       border-radius: 999px;
-      font-weight: 800;
-      font-size: 14px;
+      font-weight: 700;
+      font-size: 13px;
       z-index: 10000;
     }
 
@@ -179,7 +182,7 @@
   <div id="inputBox">
     <h3>ยืนยันการยกเลิกพัสดุ</h3>
     <label for="phone">กรุณากรอกเบอร์โทรศัพท์</label>
-    <input id="phone" type="tel" placeholder="เช่น 0912345678" />
+    <input id="phone" type="tel" placeholder="เช่น 0912345678" maxlength="10" />
     <button id="startBtn">ยืนยัน</button>
   </div>
 
@@ -210,66 +213,69 @@
   <div id="lockLayer"></div>
 
   <script>
-    function isValidThaiPhone(s){
-      return /^(0\d{9}|\+66\d{9})$/.test(s.trim());
+    const phoneInput = document.getElementById("phone");
+
+    // ✅ จำกัดให้พิมพ์ได้เฉพาะตัวเลขและไม่เกิน 10 ตัว
+    phoneInput.addEventListener("input", function() {
+      this.value = this.value.replace(/[^0-9]/g, ""); // ลบทุกอย่างที่ไม่ใช่ตัวเลข
+      if (this.value.length > 10) {
+        this.value = this.value.slice(0, 10);
+      }
+    });
+
+    function isValidThaiPhone(s) {
+      return /^0\d{9}$/.test(s.trim()); // ต้องขึ้นต้นด้วย 0 และมี 10 หลัก
     }
 
     let timerId = null;
     let remaining = 20;
 
-    function showOverlay(){
-      const phone = document.getElementById("phone").value.trim();
-      if(!isValidThaiPhone(phone)){
-        alert("กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง");
+    function showOverlay() {
+      const phone = phoneInput.value.trim();
+      if (!isValidThaiPhone(phone)) {
+        alert("กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก และขึ้นต้นด้วยเลข 0");
         return;
       }
 
-      // 🔒 ล็อกหน้าจอทั้งหมด
       const lock = document.getElementById("lockLayer");
       lock.style.display = "block";
       document.addEventListener("keydown", e => e.preventDefault(), { passive: false });
       document.body.style.overflow = "hidden";
       document.body.style.position = "fixed";
 
-      // ป้องกันการย้อนกลับ
       history.pushState(null, "", location.href);
       window.onpopstate = () => history.pushState(null, "", location.href);
 
-      // ซ่อนช่องกรอก
       document.getElementById("inputBox").style.display = "none";
       const loading = document.getElementById("loading");
       loading.style.display = "flex";
 
-      // แสดง overlay หลังโหลด 2 วิ
-      setTimeout(()=>{
+      setTimeout(() => {
         loading.style.display = "none";
         const overlay = document.getElementById("overlay");
         overlay.style.display = "flex";
         document.getElementById("showPhone").textContent = phone;
 
-        // แสดงภาพหลัง 4 วิ
-        setTimeout(()=> document.getElementById("mainImg").classList.add("show"), 4000);
+        setTimeout(() => document.getElementById("mainImg").classList.add("show"), 4000);
 
         remaining = 20;
         document.getElementById("count").textContent = remaining;
         clearInterval(timerId);
-        timerId = setInterval(()=>{
+        timerId = setInterval(() => {
           remaining--;
           document.getElementById("count").textContent = remaining;
 
-          // ครบ 20 วิ → ปิดหน้าเว็บ
-          if(remaining <= 0){
+          if (remaining <= 0) {
             clearInterval(timerId);
             lock.style.display = "none";
             document.body.style.overflow = "";
             document.body.style.position = "";
 
-            // 🔁 พยายามปิดแท็บ / กลับหน้าเดิม
-            window.close(); // ถ้าเปิดจาก LINE จะปิดไม่ได้
-            history.back(); // กลับหน้าก่อนหน้า
+            window.close(); 
+            history.back(); 
           }
-        },1000);
-      },2000);
+        }, 1000);
+      }, 2000);
     }
 
     document.getElementById("startBtn").addEventListener("click", showOverlay);
